@@ -41,8 +41,8 @@ class TooGoodToGo {
         "https://apptoogoodtogo.com/api/auth/v1/loginByEmail",
         {
           device_type: "IOS",
-          email: "enrico.bachiorrini@icloud.com",
-          password: "UANo!qD7Jzkc.EoTQmLKurCa",
+          email: this.email,
+          password: this.password,
         },
         {
           headers: {
