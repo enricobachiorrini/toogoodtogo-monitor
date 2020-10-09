@@ -1,11 +1,15 @@
 const axios = require("axios");
 const Discord = require("discord.js");
+require("dotenv").config();
 
 class TooGoodToGo {
   constructor({ email, password, webhook }) {
     this.email = email;
     this.password = password;
-    this.webhookClient = new Discord.WebhookClient(webhook.id, webhook.token);
+    this.webhookClient = new Discord.WebhookClient(
+      webhook.split("/")[5],
+      webhook.split("/")[6]
+    );
     this.userId = null;
     this.accessToken = null;
     this.refreshToken = null;
@@ -55,7 +59,7 @@ class TooGoodToGo {
       this.setUserId(data.startup_data.user.user_id);
       this.setRefreshToken(data.refresh_token);
     } catch (err) {
-      console.log(err.response.status);
+      console.log(err.message);
     }
   };
 
@@ -81,7 +85,7 @@ class TooGoodToGo {
       this.setAccessToken(data.access_token);
       this.setRefreshToken(data.refresh_token);
     } catch (err) {
-      console.log(err.response.status);
+      console.log(err.message);
     }
   };
 
@@ -134,12 +138,12 @@ class TooGoodToGo {
       const previous = prev.find(
         (prev_) => prev_.display_name == current.display_name
       );
-      if (!previous) return this.sendWebhook("Added", store);
+      if (!previous) return this.sendWebhook("Added", current);
       const previousStock = previous.items_available;
       const currentStock = current.items_available;
       //console.log(current.display_name, previousStock, currentStock);
       if (currentStock > previousStock)
-        return this.sendWebhook("Restocked", store);
+        return this.sendWebhook("Restocked", current);
     });
   };
 
@@ -171,7 +175,7 @@ class TooGoodToGo {
       this.compareStock(this.favorites, data.items);
       this.setFavorites(data.items);
     } catch (err) {
-      console.log(err.response.status);
+      console.log(err.message);
     }
   };
 
@@ -182,13 +186,9 @@ class TooGoodToGo {
 
 const main = async () => {
   const client = new TooGoodToGo({
-    email: "enrico.bachiorrini@icloud.com",
-    password: "UANo!qD7Jzkc.EoTQmLKurCa",
-    webhook: {
-      id: "763871064975081472",
-      token:
-        "PGfsWFiU76-ibs0nwgxgN6YzCo2kkt8L7VbwOFv5TLRSZRhRvaHe_kAbmOSgMEIhw1Vf",
-    },
+    email: process.env.EMAIL,
+    password: process.env.PASSWORD,
+    webhook: process.env.WEBHOOK,
   });
 
   await client.login();
