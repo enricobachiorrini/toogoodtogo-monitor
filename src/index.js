@@ -2,6 +2,8 @@ const axios = require("axios");
 const Discord = require("discord.js");
 require("dotenv").config();
 
+const api = require("./api.js");
+
 class TooGoodToGo {
   constructor({ email, password, webhook }) {
     this.email = email;
@@ -37,55 +39,25 @@ class TooGoodToGo {
 
   loginByEmail = async () => {
     try {
-      const { data } = await axios.post(
-        "https://apptoogoodtogo.com/api/auth/v1/loginByEmail",
-        {
-          device_type: "IOS",
-          email: this.email,
-          password: this.password,
-        },
-        {
-          headers: {
-            accept: "application/json",
-            "content-type": "application/json",
-            "user-agent":
-              "TooGoodToGo/20.9.2 (837) (iPhone/iPhone XS (Global); iOS 14.0; Scale/3.00)",
-            "accept-language": "en-GB",
-            "accept-encoding": "gzip;q=1.0, compress;q=0.5 ",
-          },
-        }
-      );
+      const { data } = await api.loginByEmail(this.email, this.password);
       this.setAccessToken(data.access_token);
       this.setUserId(data.startup_data.user.user_id);
       this.setRefreshToken(data.refresh_token);
     } catch (err) {
-      console.log(err.message);
+      console.log(err);
     }
   };
 
   refreshAccessToken = async () => {
     try {
-      const { data } = await axios.post(
-        "https://apptoogoodtogo.com/api/auth/v1/token/refresh",
-        {
-          refresh_token: this.refreshToken,
-        },
-        {
-          headers: {
-            accept: "application/json",
-            "content-type": "application/json",
-            "user-agent":
-              "TooGoodToGo/20.9.2 (837) (iPhone/iPhone XS (Global); iOS 14.0; Scale/3.00)",
-            "accept-language": "en-GB",
-            "accept-encoding": "gzip;q=1.0, compress;q=0.5 ",
-            authorization: `Bearer ${this.accessToken}`,
-          },
-        }
+      const { data } = await api.refreshAccessToken(
+        this.accessToken,
+        this.refreshToken
       );
       this.setAccessToken(data.access_token);
       this.setRefreshToken(data.refresh_token);
     } catch (err) {
-      console.log(err.message);
+      console.log(err);
     }
   };
 
@@ -103,6 +75,8 @@ class TooGoodToGo {
       case "Restocked":
         color = "#00ff7a";
         break;
+      case "OOS":
+        color = "#ff005c";
       default:
         color = "#000000";
         break;
@@ -144,38 +118,18 @@ class TooGoodToGo {
       //console.log(current.display_name, previousStock, currentStock);
       if (currentStock > previousStock)
         return this.sendWebhook("Restocked", current);
+      if (currentStock == 0 && previousStock)
+        return this.sendWebhook("OOS", current);
     });
   };
 
   getFavorites = async () => {
     try {
-      const { data } = await axios.post(
-        "https://apptoogoodtogo.com/api/item/v6/",
-        {
-          favorites_only: true,
-          origin: {
-            latitude: 43.7002853569452,
-            longitude: 7.272024885637856,
-          },
-          radius: 200,
-          user_id: this.userId,
-        },
-        {
-          headers: {
-            accept: "application/json",
-            "content-type": "application/json",
-            "user-agent":
-              "TooGoodToGo/20.9.2 (837) (iPhone/iPhone XS (Global); iOS 14.0; Scale/3.00)",
-            "accept-language": "en-GB",
-            "accept-encoding": "gzip;q=1.0, compress;q=0.5 ",
-            authorization: `Bearer ${this.accessToken}`,
-          },
-        }
-      );
+      const { data } = await api.getFavorites(this.accessToken, this.userId);
       this.compareStock(this.favorites, data.items);
       this.setFavorites(data.items);
     } catch (err) {
-      console.log(err.message);
+      console.log(err);
     }
   };
 
@@ -192,7 +146,7 @@ const main = async () => {
   });
 
   await client.login();
-  client.startMonitor(60 * 1000); // Once per minute
+  client.startMonitor(500); // Once per minute
 };
 
 main();
