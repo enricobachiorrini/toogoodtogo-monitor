@@ -77,6 +77,7 @@ class TooGoodToGo {
         break;
       case "OOS":
         color = "#ff005c";
+        break;
       default:
         color = "#000000";
         break;
