@@ -1,8 +1,10 @@
-const axios = require("axios");
 const Discord = require("discord.js");
+const redis = require("async-redis");
 require("dotenv").config();
 
 const api = require("./api.js");
+
+const client = redis.createClient({ url: process.env.REDIS_URL });
 
 class TooGoodToGo {
   constructor({ email, password, webhook }) {
@@ -15,7 +17,6 @@ class TooGoodToGo {
     this.userId = null;
     this.accessToken = null;
     this.refreshToken = null;
-    this.favorites = [];
   }
   setUserId = (userId) => {
     this.userId = userId;
@@ -25,10 +26,6 @@ class TooGoodToGo {
   };
   setRefreshToken = (refreshToken) => {
     this.refreshToken = refreshToken;
-  };
-
-  setFavorites = (favorites) => {
-    this.favorites = favorites;
   };
 
   login = async () => {
@@ -108,27 +105,22 @@ class TooGoodToGo {
     });
   };
 
-  compareStock = async (prev, curr) => {
-    curr.forEach((current) => {
-      const previous = prev.find(
-        (prev_) => prev_.display_name == current.display_name
-      );
-      if (!previous) return this.sendWebhook("Added", current);
-      const previousStock = previous.items_available;
-      const currentStock = current.items_available;
-      //console.log(current.display_name, previousStock, currentStock);
-      if (currentStock > previousStock)
-        return this.sendWebhook("Restocked", current);
-      if (currentStock == 0 && previousStock)
-        return this.sendWebhook("OOS", current);
-    });
+  compareStock = async (restaurant) => {
+    const stock = await client.get(restaurant.item.item_id);
+    if (!stock) return this.sendWebhook("Added", restaurant);
+    if (restaurant.items_available > stock)
+      return this.sendWebhook("Restocked", restaurant);
+    if (stock > 0 && restaurant.items_available == 0)
+      return this.sendWebhook("OOS", restaurant);
   };
 
   getFavorites = async () => {
     try {
       const { data } = await api.getFavorites(this.accessToken, this.userId);
-      this.compareStock(this.favorites, data.items);
-      this.setFavorites(data.items);
+      data.items.forEach(async (restaurant) => {
+        await this.compareStock(restaurant);
+        await client.set(restaurant.item.item_id, restaurant.items_available);
+      });
     } catch (err) {
       console.log(err);
     }
@@ -147,7 +139,7 @@ const main = async () => {
   });
 
   await client.login();
-  client.startMonitor(1000 * 60); // Once per minute
+  client.startMonitor(5000); // Once per minute
 };
 
 main();
