@@ -139,7 +139,7 @@ const main = async () => {
   });
 
   await client.login();
-  client.startMonitor(5000); // Once per minute
+  client.startMonitor(1000 * 60); // Once per minute
 };
 
 main();
