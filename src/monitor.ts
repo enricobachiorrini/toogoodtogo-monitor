@@ -131,6 +131,9 @@ export class TGTGMonitor {
       );
 
     this.webhookClient.send({
+      username: "TooGoodToGo",
+      avatarURL:
+        "https://i.ibb.co/Q93ZQXj/TGTG-Icon-White-Cirle-1988x1988px-RGB.png",
       embeds: [embed],
     });
   }
