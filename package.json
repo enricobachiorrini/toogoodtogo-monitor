@@ -1,7 +1,7 @@
 {
   "name": "toogoodtogo",
   "version": "1.0.0",
-  "description": "Monitor for Too Good To Go",
+  "description": "Monitor for TooGoodToGo restocks",
   "main": "dist/index.js",
   "scripts": {
     "start": "node dist/index.js",
