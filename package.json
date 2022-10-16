@@ -1,18 +1,23 @@
 {
   "name": "toogoodtogo",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Monitor for Too Good To Go",
+  "main": "dist/index.js",
   "scripts": {
-    "start": "node src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node dist/index.js",
+    "build": "npx tsc"
   },
-  "author": "",
+  "author": "Enrico Maria Bachiorrini",
   "license": "ISC",
   "dependencies": {
-    "async-redis": "^1.1.7",
-    "axios": "^0.20.0",
-    "discord.js": "^12.3.1",
-    "dotenv": "^8.2.0"
+    "@types/dinero.js": "^1.9.0",
+    "@types/node": "^18.11.0",
+    "dinero.js": "^1.9.1",
+    "discord.js": "^14.6.0",
+    "dotenv": "^8.2.0",
+    "got": "^11.8.1",
+    "moment": "^2.29.4",
+    "typescript": "^4.8.4",
+    "winston": "^3.8.2"
   }
 }

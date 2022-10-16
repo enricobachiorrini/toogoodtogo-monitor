@@ -1,26 +1,32 @@
-## Installation
-
-### Make sure Redis is installed
-On your computer or remotely. 
-For instructions on how to install Redis, read [this](https://flaviocopes.com/redis-installation/).
-
-
 ### Installation
+
 ```bash
-git clone https://github.com/enricobachiorrini/too-good-to-go-notification
-cd too-good-to-go-notification
+git clone https://github.com/enricobachiorrini/too-good-to-go-monitor
+cd too-good-to-go-monitor
 npm install
 ```
 
 ### Create .env file
-Make sure to add the following keys:
+
+Make sure to add the following:
+
 ```
 EMAIL=XXX        # Too Good To Go email
-PASSWORD=XXX     # Too Good To Go password
-WEBHOOK=XXX      # Discord webhook
-REDIS_URL=XXX    # redis://user:password@host:port or leave blank for default redis://localhost:6379
+WEBHOOK=XXX      # Discord webhook to send notifications
 ```
+
 ### Start the script
+
 ```bash
+npm run build
 npm start
 ```
+
+### Login
+
+Open your email, and you should find an email from Too Good To Go with subjet "Continue your log in".
+Click on the green "LOG ME IN" button. The link must be opened in a browser in order for this to work. If you're automatically redirected to the app upon clicking, manually copy the link and paste it in a browser.
+
+### Enjoy
+
+Add the restaurants you want to monitor to your favorites. You will be getting a Discord notification when items are restocked or sold out.
