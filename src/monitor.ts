@@ -1,22 +1,20 @@
-import { EmbedBuilder, WebhookClient } from "discord.js";
 import { TGTGClient } from "./client";
 import { Item } from "./types/Bucket";
+import { Notifier } from "./notifications/notifier";
 import { Status } from "./types/Status";
 import { logger } from "./utils/logger";
 import { sleep } from "./utils/sleep";
-import Dinero from "dinero.js";
-import moment from "moment";
 
 export class TGTGMonitor {
   email: string;
+  notifiers: Notifier[];
   client: TGTGClient;
   favorites?: Item[];
-  webhookClient: WebhookClient;
 
-  constructor({ email, webhookURL }: { email: string; webhookURL: string }) {
+  constructor({ email, notifiers }: { email: string; notifiers: Notifier[] }) {
     this.email = email;
+    this.notifiers = notifiers;
     this.client = new TGTGClient();
-    this.webhookClient = new WebhookClient({ url: webhookURL });
   }
 
   private computeChanges(previous: Item[], current: Item[]) {
@@ -37,104 +35,66 @@ export class TGTGMonitor {
   }
 
   async start(delay: number = 5000) {
-    logger.info(`Starting monitor with delay ${delay} ms.`);
+    try {
+      logger.info(`Starting monitor with delay ${delay} ms.`);
 
-    await this.client.login(this.email);
+      await this.client.login(this.email);
 
-    while (true) {
-      const favorites = await this.client.getFavorites();
+      while (true) {
+        const favorites = await this.client.getFavorites();
 
-      if (this.favorites) {
-        const changes = this.computeChanges(this.favorites, favorites);
+        if (this.favorites) {
+          const changes = this.computeChanges(this.favorites, favorites);
 
-        for (const current of changes.added) {
-          logger.info(`Added ${current.display_name}.`);
-          this.notify(current, Status.ADDED);
-        }
+          for (const current of changes.added) {
+            logger.info(`Added ${current.display_name}.`);
+            this.notifiers.forEach((notifier) =>
+              notifier.notify(current, Status.ADDED)
+            );
+          }
 
-        for (const previous of changes.removed) {
-          logger.info(`Removed ${previous.display_name}.`);
-          this.notify(previous, Status.REMOVED);
-        }
+          for (const previous of changes.removed) {
+            logger.info(`Removed ${previous.display_name}.`);
+            this.notifiers.forEach((notifier) =>
+              notifier.notify(previous, Status.REMOVED)
+            );
+          }
 
-        for (const current of changes.unchanged) {
-          const previous = this.favorites.find(
-            (previous) => previous.item.item_id == current.item.item_id
-          );
+          for (const current of changes.unchanged) {
+            const previous = this.favorites.find(
+              (previous) => previous.item.item_id == current.item.item_id
+            );
 
-          if (!previous)
-            throw new Error("Could not find matching previous item.");
+            if (!previous)
+              throw new Error("Could not find matching previous item.");
 
-          if (previous.items_available == 0 && current.items_available > 0) {
-            logger.info(`Restocked ${current.display_name}.`);
-            this.notify(current, Status.RESTOCKED);
-          } else if (
-            previous.items_available > 0 &&
-            current.items_available == 0
-          ) {
-            logger.info(`Sold out ${current.display_name}.`);
-            this.notify(current, Status.SOLD_OUT);
+            if (previous.items_available == 0 && current.items_available > 0) {
+              logger.info(`Restocked ${current.display_name}.`);
+              this.notifiers.forEach((notifier) =>
+                notifier.notify(current, Status.RESTOCKED)
+              );
+            } else if (
+              previous.items_available > 0 &&
+              current.items_available == 0
+            ) {
+              logger.info(`Sold out ${current.display_name}.`);
+              this.notifiers.forEach((notifier) =>
+                notifier.notify(current, Status.SOLD_OUT)
+              );
+            }
           }
         }
-      }
 
-      this.favorites = favorites;
+        this.favorites = favorites;
+        await sleep(delay);
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.error(error.message);
+      } else {
+        logger.error("An unknown error occurred.");
+      }
       await sleep(delay);
     }
-  }
-
-  computeColor(status: Status) {
-    switch (status) {
-      case Status.ADDED: {
-        return "Blue";
-      }
-      case Status.REMOVED: {
-        return "Orange";
-      }
-      case Status.SOLD_OUT: {
-        return "Red";
-      }
-      case Status.RESTOCKED: {
-        return "Green";
-      }
-    }
-  }
-
-  async notify(item: Item, status: Status) {
-    const name = item.item.name ? item.item.name : "Magic Bag";
-    const price = Dinero({
-      amount: item.item.price_including_taxes.minor_units,
-      currency: item.item.price_including_taxes.code,
-    }).toFormat("$0,0.00");
-    const stock = item.items_available.toString();
-    const collection = item.pickup_interval
-      ? moment(item.pickup_interval.start).calendar()
-      : "N/A";
-
-    const embed = new EmbedBuilder()
-      .setAuthor({
-        name: item.store.store_name,
-        iconURL: item.store.logo_picture.current_url,
-      })
-      .setDescription(name)
-      .setThumbnail(item.item.cover_picture.current_url)
-      .setColor(this.computeColor(status))
-      .addFields(
-        { name: "Status", value: status, inline: true },
-        {
-          name: "Cost",
-          value: price,
-          inline: true,
-        },
-        { name: "Stock", value: stock, inline: true },
-        { name: "Collection", value: collection, inline: true }
-      );
-
-    this.webhookClient.send({
-      username: "TooGoodToGo",
-      avatarURL:
-        "https://i.ibb.co/Q93ZQXj/TGTG-Icon-White-Cirle-1988x1988px-RGB.png",
-      embeds: [embed],
-    });
   }
 }

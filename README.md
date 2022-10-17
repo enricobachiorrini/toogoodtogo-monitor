@@ -33,4 +33,11 @@ Click on the green "LOG ME IN" button. The link must be opened in a browser in o
 
 Add the restaurants you want to monitor to your favorites. You will be getting a Discord notification when items are restocked or sold out.
 
-<img src="https://i.ibb.co/HKvZ8yk/Screen-Shot-2022-10-17-at-00-08-17.png" height="400px">
+<img src="https://i.ibb.co/SN0yQ64/Screen-Shot-2022-10-17-at-11-08-09.png" height="450px">
+
+### Docker
+
+```
+docker build -t toogoodtogo-monitor .
+docker run toogoodtogo-monitor
+```
