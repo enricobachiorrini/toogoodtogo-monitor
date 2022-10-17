@@ -9,6 +9,7 @@ import { Response as RefreshResponse } from "./types/Refresh";
 import { logger } from "./utils/logger";
 import { sleep } from "./utils/sleep";
 import moment, { Moment } from "moment";
+import { HttpsProxyAgent } from "hpagent";
 
 export class TGTGClient {
   pollingDelay = 5000;
@@ -29,6 +30,18 @@ export class TGTGClient {
         "Accept-Encoding": "gzip, deflate, br",
         "Content-Type": "application/json",
       },
+      agent: process.env.PROXY
+        ? {
+            https: new HttpsProxyAgent({
+              keepAlive: true,
+              keepAliveMsecs: 1000,
+              maxSockets: 256,
+              maxFreeSockets: 256,
+              scheduling: "lifo",
+              proxy: process.env.PROXY,
+            }),
+          }
+        : undefined,
       hooks: {
         beforeRequest: [
           async (options) => {
