@@ -1,7 +1,6 @@
 import Dinero from "dinero.js";
 import { EmbedBuilder, WebhookClient } from "discord.js";
 import moment from "moment";
-
 import { Item } from "../types/Bucket";
 import { Notifier } from "./notifier";
 import { Status } from "../types/Status";

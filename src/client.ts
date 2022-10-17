@@ -13,6 +13,7 @@ import { HttpsProxyAgent } from "hpagent";
 
 export class TGTGClient {
   pollingDelay = 5000;
+  proxy?: string;
   client: Got;
   user?: User;
   accessToken?: string;
@@ -20,7 +21,8 @@ export class TGTGClient {
   refreshToken?: string;
   lastLogin?: Moment;
 
-  constructor() {
+  constructor({ proxy }: { proxy?: string }) {
+    this.proxy = proxy;
     this.client = got.extend({
       prefixUrl: "https://apptoogoodtogo.com/api/",
       headers: {
@@ -30,7 +32,7 @@ export class TGTGClient {
         "Accept-Encoding": "gzip, deflate, br",
         "Content-Type": "application/json",
       },
-      agent: process.env.PROXY
+      agent: proxy
         ? {
             https: new HttpsProxyAgent({
               keepAlive: true,
@@ -38,7 +40,7 @@ export class TGTGClient {
               maxSockets: 256,
               maxFreeSockets: 256,
               scheduling: "lifo",
-              proxy: process.env.PROXY,
+              proxy: proxy,
             }),
           }
         : undefined,
@@ -107,7 +109,7 @@ export class TGTGClient {
       this.accessToken = data.access_token;
       this.accessTokenTTL = data.access_token_ttl_seconds;
       this.refreshToken = data.refresh_token;
-      this.lastLogin = moment(new Date());
+      this.lastLogin = moment();
       this.user = data.startup_data.user;
     }
   }
@@ -125,7 +127,7 @@ export class TGTGClient {
     this.accessToken = data.access_token;
     this.accessTokenTTL = data.access_token_ttl_seconds;
     this.refreshToken = data.refresh_token;
-    this.lastLogin = moment(new Date());
+    this.lastLogin = moment();
   }
 
   async getFavorites() {

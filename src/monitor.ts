@@ -8,13 +8,23 @@ import { sleep } from "./utils/sleep";
 export class TGTGMonitor {
   email: string;
   notifiers: Notifier[];
+  proxy?: string;
   client: TGTGClient;
   favorites?: Item[];
 
-  constructor({ email, notifiers }: { email: string; notifiers: Notifier[] }) {
+  constructor({
+    email,
+    notifiers,
+    proxy,
+  }: {
+    email: string;
+    notifiers: Notifier[];
+    proxy?: string;
+  }) {
     this.email = email;
     this.notifiers = notifiers;
-    this.client = new TGTGClient();
+    this.proxy = proxy;
+    this.client = new TGTGClient({ proxy });
   }
 
   private computeChanges(previous: Item[], current: Item[]) {
@@ -34,7 +44,7 @@ export class TGTGMonitor {
     };
   }
 
-  async start(delay: number = 5000) {
+  async start(delay: number) {
     try {
       logger.info(`Starting monitor with delay ${delay} ms.`);
 

@@ -12,6 +12,7 @@
   "dependencies": {
     "@types/dinero.js": "^1.9.0",
     "@types/node": "^18.11.0",
+    "@types/yargs": "^17.0.13",
     "dinero.js": "^1.9.1",
     "discord.js": "^14.6.0",
     "dotenv": "^8.2.0",
@@ -20,6 +21,7 @@
     "moment": "^2.29.4",
     "telegraf": "^4.10.0",
     "typescript": "^4.8.4",
-    "winston": "^3.8.2"
+    "winston": "^3.8.2",
+    "yargs": "^17.6.0"
   }
 }
