@@ -6,6 +6,10 @@ cd too-good-to-go-monitor
 npm install
 ```
 
+### Configure Notifications Channels
+
+TODO
+
 ### Create .env file
 
 Make sure to add the following:
