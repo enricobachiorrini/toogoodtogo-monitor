@@ -8,23 +8,16 @@ npm install
 
 ### Configure Notifications Channels
 
-TODO
-
-### Create .env file
-
-Make sure to add the following:
-
-```
-EMAIL=XXX        # Too Good To Go email
-WEBHOOK=XXX      # Discord webhook to send notifications
-```
+TODO: Discord (create webhook) and Telegram (create bot).
 
 ### Start the script
 
 ```bash
 npm run build
-npm start
+npm start -- --email <email> [--discord <webhook URL>] [--telegram-token <bot token>] [--telegram-chat <chat id>]
 ```
+
+[Note](https://docs.npmjs.com/cli/v8/commands/npm-run-script#description) the `--` before `--email`.
 
 ### Login
 
@@ -33,7 +26,7 @@ Click on the green "LOG ME IN" button. The link must be opened in a browser in o
 
 <img src="https://i.ibb.co/X70NcdN/Continue-your-log-in.png" height=150px>
 
-### Enjoy
+### Eat
 
 Add the restaurants you want to monitor to your favorites. You will be getting a Discord notification when items are restocked or sold out.
 
@@ -41,7 +34,9 @@ Add the restaurants you want to monitor to your favorites. You will be getting a
 
 ### Docker
 
-```
+```bash
 docker build -t toogoodtogo-monitor .
-docker run toogoodtogo-monitor
+docker run toogoodtogo-monitor -- --email <email> [--discord <webhook URL>] [--telegram-token <bot token>] [--telegram-chat <chat id>]
 ```
+
+[Note](https://docs.npmjs.com/cli/v8/commands/npm-run-script#description) the `--` before `--email`.
