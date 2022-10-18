@@ -7,9 +7,9 @@ import { Status } from "../types/Status";
 
 export class TelegramNotifier extends Notifier {
   bot: Telegraf;
-  chatId: string;
+  chatId: string | number;
 
-  constructor(token: string, chatId: string) {
+  constructor(token: string, chatId: string | number) {
     super();
     this.bot = new Telegraf(token);
     this.chatId = chatId;

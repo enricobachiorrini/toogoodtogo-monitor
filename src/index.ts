@@ -9,31 +9,35 @@ async function main() {
   const parser = yargs
     .options({
       email: {
-        type: "string",
         alias: "e",
+        type: "string",
         describe: "The email to be monitored",
         demandOption: true,
       },
       delay: {
-        type: "number",
         alias: "d",
+        type: "number",
         describe: "Monitor delay",
         default: 5000,
       },
       proxy: {
-        type: "string",
         alias: "p",
+        type: "string",
         describe: "Proxies",
       },
       discord: {
         type: "array",
         describe: "Discord webhooks for notifications",
-        default: [],
       },
-      telegram: {
+      "telegram-token": {
+        type: "string",
+        describe: "Telegram API token",
+        implies: ["telegram-chat"],
+      },
+      "telegram-chat": {
         type: "array",
-        describe: "Telegram API key and chat id for notifications",
-        default: [],
+        describe: "Telegram chat ID(s)",
+        implies: ["telegram-token"],
       },
     })
     .help("h")
@@ -41,14 +45,18 @@ async function main() {
 
   const argv = await parser.argv;
 
-  const discordNotifiers = argv.discord.map((discord) => {
-    // check if webhook url is fine
-    return new DiscordNotifier(discord);
-  });
-  const telegramNotifiers = argv.telegram.map((telegram) => {
-    // check if format is fine
-    return new TelegramNotifier(telegram, telegram);
-  });
+  const discordNotifiers = argv.discord
+    ? argv.discord
+        .filter((webhook): webhook is string => typeof webhook == "string")
+        .map((webhook) => new DiscordNotifier(webhook))
+    : [];
+
+  const telegramNotifiers = argv.telegramChat
+    ? argv.telegramChat.map(
+        (chatId) => new TelegramNotifier(argv.telegramToken!, chatId)
+      )
+    : [];
+
   const notifiers = [...discordNotifiers, ...telegramNotifiers];
 
   const monitor = new TGTGMonitor({
